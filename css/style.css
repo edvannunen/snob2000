@@ -126,6 +126,8 @@
   tbody tr:hover{ background:var(--paper-dim); }
   .rank{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink); width:44px;}
   .col-jaren{ width:90px; }
+  .verloop-col{ font-size:11px; color:#a19c8e; max-width:230px; white-space:normal; word-break:break-word; line-height:1.6; }
+  .title-narrow{ max-width:130px; white-space:normal; word-break:break-word; }
   .move-up{color:var(--up); font-family:'IBM Plex Mono',monospace; font-size:12px;}
   .move-down{color:var(--down); font-family:'IBM Plex Mono',monospace; font-size:12px;}
   .move-flat{color:#a19c8e; font-family:'IBM Plex Mono',monospace; font-size:12px;}

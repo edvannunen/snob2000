@@ -329,7 +329,7 @@ function renderHallOfFame(){
           ${all14.map(s=>{
             const cr = currentRank(s);
             const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
-            return `<tr><td class="rank">${cr?cr.pos:'—'}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td>${addBtnHtml(s.id)}</tr>`;
+            return `<tr><td class="rank">${cr?cr.pos:'—'}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name title-narrow">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono verloop-col">${spark}</td>${addBtnHtml(s.id)}</tr>`;
           }).join('') || '<tr><td colspan="6" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
         </table>
@@ -343,7 +343,7 @@ function renderHallOfFame(){
           <tbody>
           ${others.map(({s,years})=>{
             const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
-            return `<tr><td class="rank col-jaren">${years}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td>${addBtnHtml(s.id)}</tr>`;
+            return `<tr><td class="rank col-jaren">${years}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name title-narrow">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono verloop-col">${spark}</td>${addBtnHtml(s.id)}</tr>`;
           }).join('') || '<tr><td colspan="6" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
         </table>
