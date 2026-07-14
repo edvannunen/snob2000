@@ -26,7 +26,7 @@ const TABS = [
   {id:'stijgers', label:'Stijgers & dalers'},
   {id:'nieuw', label:'Nieuwkomers'},
   {id:'artiesten', label:'Artiesten'},
-  {id:'decennia', label:'Decennia'},
+  {id:'decennia', label:'Jaartallen'},
   {id:'jaaroverzicht', label:'Jaaroverzicht'},
 ];
 
@@ -105,6 +105,12 @@ function renderOverzicht(){
   // current top 5
   const top5 = SONGS.filter(s=> isNum(posIn(s,CUR_YEAR))).sort((a,b)=> posIn(a,CUR_YEAR)-posIn(b,CUR_YEAR)).slice(0,5);
 
+  // release year with the most songs
+  const releaseYearCounts = new Map();
+  SONGS.forEach(s=>{ if(s.y){ releaseYearCounts.set(s.y, (releaseYearCounts.get(s.y)||0)+1); } });
+  let topReleaseYear = null;
+  releaseYearCounts.forEach((count, year)=>{ if(!topReleaseYear || count > topReleaseYear.count){ topReleaseYear = {year, count}; } });
+
   panel.innerHTML = `
     <div class="section-head">
       <span class="kicker">Snapshot</span>
@@ -118,6 +124,7 @@ function renderOverzicht(){
       <div class="kpi"><div class="num">${fmtNum(oneHitArtists)}</div><div class="label">Artiesten met precies 1 nummer</div></div>
       <div class="kpi"><div class="num">${recordCount}<small> jr</small></div><div class="label">Record: meeste jaren genoteerd</div><div class="sub">${esc(songLabel(recordHolder))}</div></div>
       <div class="kpi"><div class="num">${fmtNum(newThisYear)}</div><div class="label">Nieuwe binnenkomers in ${CUR_YEAR}</div></div>
+      ${topReleaseYear ? `<div class="kpi"><div class="num">${topReleaseYear.year}</div><div class="label">Het jaartal met de meeste nummers over alle jaren</div><div class="sub">${fmtNum(topReleaseYear.count)} nummers</div></div>` : ''}
     </div>
 
     <div class="grid-2">
@@ -161,9 +168,6 @@ function renderOverzicht(){
         ` : ''}
       </div>
     </div>
-    <p style="font-size:12px;color:#a19c8e;font-family:'IBM Plex Mono',monospace;line-height:1.6;">
-      Let op: nummers die dat jaar in de Top 2000 staan, of in de keuzelijst van de Top 2000 tellen niet mee als notering.
-    </p>
   `;
 
   new Chart(document.getElementById('turnoverChart'), {
@@ -466,46 +470,59 @@ function drawArtists(arr, sortKey){
     </table>`;
 }
 
-/* ============ 7. DECENNIA ============ */
+/* ============ 7. DECENNIA & JAARTALLEN ============ */
 let decadeChartObj = null;
-let decadeScope = 'all';
-let decadeDrill = null; // e.g. 1990 -> drilled into the years 1990-1999
+let decadeGranularity = 'decade'; // 'decade' | 'year'
+let decadeYearFilter = 'all'; // 'all' or a jaargang (number)
+let decadeDrill = null; // e.g. 1990 -> drilled into the years 1990-1999 (decade mode only)
 function renderDecennia(){
   const panel = document.getElementById('panel-decennia');
   panel.innerHTML = `
     <div class="section-head">
       <span class="kicker">Muziekgeschiedenis</span>
-      <h2>Decennium-verdeling</h2>
-      <p>Uit welk decennium komen de nummers in de SNOB 2000, gebaseerd op releasejaar. Klik op een decennium voor de jaartallen.</p>
+      <h2>Decennium &amp; jaartallen verdeling</h2>
+      <p>Uit welk decennium of jaartal komen de nummers in de SNOB 2000, gebaseerd op releasejaar. Klik op een decennium voor een uitsplitsing naar de jaartallen.</p>
     </div>
     <div class="card">
-      <div class="btnrow" style="margin-bottom:14px;">
-        <button class="pill-btn active" data-scope="all">Hele geschiedenis (${SONGS.length})</button>
-        <button class="pill-btn" data-scope="current">Huidige lijst ${CUR_YEAR}</button>
-        <button class="pill-btn" data-scope="current-years">Alle jaartallen huidige lijst ${CUR_YEAR}</button>
+      <div class="controls">
+        <label class="mono" style="font-size:12px;color:#8a8578;">VERDELING PER</label>
+        <select id="decadeGranularitySelect">
+          <option value="decade">Decennium</option>
+          <option value="year">Jaartal</option>
+        </select>
+        <label class="mono" style="font-size:12px;color:#8a8578;margin-left:14px;">JAARGANG</label>
+        <select id="decadeYearSelect">
+          <option value="all">Alle jaargangen (${SONGS.length})</option>
+          ${[...YEARS].reverse().map(y=> `<option value="${y}">${y}</option>`).join('')}
+        </select>
       </div>
       <div id="decadeBreadcrumb"></div>
       <canvas id="decadeChart" height="200"></canvas>
       <p id="unknownNote" style="font-size:12px;color:#a19c8e;margin-top:10px;"></p>
     </div>
   `;
-  const btns = panel.querySelectorAll('.pill-btn');
-  btns.forEach(b=> b.addEventListener('click', ()=>{
-    btns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  document.getElementById('decadeGranularitySelect').addEventListener('change', (e)=>{
+    decadeGranularity = e.target.value;
     decadeDrill = null;
-    drawDecades(b.dataset.scope);
-  }));
+    drawDecades();
+  });
+  document.getElementById('decadeYearSelect').addEventListener('change', (e)=>{
+    decadeYearFilter = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+    decadeDrill = null;
+    drawDecades();
+  });
+  decadeGranularity = 'decade';
+  decadeYearFilter = 'all';
   decadeDrill = null;
-  drawDecades('all');
+  drawDecades();
 }
-function drawDecades(scope){
-  decadeScope = scope;
-  const pool = scope==='all' ? SONGS : SONGS.filter(s=> isNum(posIn(s,CUR_YEAR)));
-  const drillable = scope!=='current-years';
+function drawDecades(){
+  const pool = decadeYearFilter==='all' ? SONGS : SONGS.filter(s=> isNum(posIn(s,decadeYearFilter)));
+  const drillable = decadeGranularity==='decade';
   let unknown = 0;
   let labels, counts;
 
-  if(scope==='current-years'){
+  if(decadeGranularity==='year'){
     const buckets = new Map();
     pool.forEach(s=>{ if(!s.y){ unknown++; return; } buckets.set(s.y,(buckets.get(s.y)||0)+1); });
     const yrs = Array.from(buckets.keys()).sort((a,b)=>a-b);
@@ -538,7 +555,7 @@ function drawDecades(scope){
   const breadcrumb = document.getElementById('decadeBreadcrumb');
   if(drillable && decadeDrill!==null){
     breadcrumb.innerHTML = `<button class="pill-btn" id="backToDecades" style="margin-bottom:14px;">← Terug naar decennia (jaren ${decadeDrill}s)</button>`;
-    document.getElementById('backToDecades').addEventListener('click', ()=>{ decadeDrill = null; drawDecades(decadeScope); });
+    document.getElementById('backToDecades').addEventListener('click', ()=>{ decadeDrill = null; drawDecades(); });
   } else {
     breadcrumb.innerHTML = '';
   }
@@ -553,7 +570,7 @@ function drawDecades(scope){
       onClick:(evt, elements)=>{
         if(!drillable || decadeDrill!==null || !elements.length) return;
         decadeDrill = parseInt(labels[elements[0].index]);
-        setTimeout(()=> drawDecades(decadeScope), 0);
+        setTimeout(()=> drawDecades(), 0);
       },
       onHover:(evt, elements)=>{
         evt.native.target.style.cursor = (drillable && decadeDrill===null && elements.length) ? 'pointer' : 'default';
