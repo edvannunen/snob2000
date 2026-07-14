@@ -137,6 +137,22 @@
     display:inline-flex; align-items:center; gap:5px; background:var(--maroon); color:#fff; font-family:'IBM Plex Mono',monospace;
     font-size:10.5px; padding:2px 7px; border-radius:10px; margin-left:6px; letter-spacing:.3px;
   }
+  .add-col{ width:36px; text-align:center; padding:6px !important; }
+  .add-compare-btn{
+    width:24px; height:24px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--red);
+    font-family:'IBM Plex Mono',monospace; font-size:15px; line-height:1; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; transition:.15s;
+  }
+  .add-compare-btn:hover{ background:var(--red); color:#fff; border-color:var(--red); }
+
+  /* ---------- TOAST ---------- */
+  #toast{
+    position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:12px 18px; border-radius:8px; font-size:13.5px;
+    box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s ease; z-index:1000;
+    max-width:90vw; text-align:center;
+  }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
   /* ---------- SEARCH / COMPARE ---------- */
   .search-box{ position:relative; flex:1; min-width:240px;}
