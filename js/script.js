@@ -21,10 +21,10 @@ function songLabel(song){ return `${song.a} — ${song.t}`; }
 /* ============ TAB FRAMEWORK ============ */
 const TABS = [
   {id:'overzicht', label:'Overzicht'},
-  {id:'zoeken', label:'Zoek & vergelijk'},
   {id:'halloffame', label:'Hall of Fame'},
   {id:'stijgers', label:'Stijgers & dalers'},
   {id:'nieuw', label:'Nieuwkomers'},
+  {id:'zoeken', label:'Zoek & vergelijk'},
   {id:'artiesten', label:'Artiesten'},
   {id:'decennia', label:'Jaartallen'},
   {id:'jaaroverzicht', label:'Jaaroverzicht'},
@@ -52,6 +52,29 @@ function activate(id){
   document.querySelectorAll('section.panel').forEach(p=> p.classList.toggle('active', p.id==='panel-'+id));
   if(!rendered[id]){ RENDERERS[id](); rendered[id]=true; }
   window.scrollTo({top:0, behavior:'instant'});
+}
+
+/* ---------- add-to-compare button (used across every song table) ---------- */
+function addBtnHtml(id){
+  return `<td class="add-col"><button class="add-compare-btn" data-add="${id}" title="Toevoegen aan de 'Zoek &amp; Vergelijk' pagina">+</button></td>`;
+}
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-add]');
+  if(btn) addCompare(parseInt(btn.dataset.add));
+});
+
+let toastTimer = null;
+function showToast(message){
+  let toast = document.getElementById('toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toast.classList.remove('show'), 3000);
 }
 
 /* ============ 1. OVERZICHT ============ */
@@ -136,7 +159,7 @@ function renderOverzicht(){
         <h3>Top 5 van dit moment <span class="tag">${CUR_YEAR}</span></h3>
         <table>
           <tbody>
-          ${top5.map(s=> `<tr><td class="rank">${posIn(s,CUR_YEAR)}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td></tr>`).join('')}
+          ${top5.map(s=> `<tr><td class="rank">${posIn(s,CUR_YEAR)}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td>${addBtnHtml(s.id)}</tr>`).join('')}
           </tbody>
         </table>
       </div>
@@ -228,10 +251,18 @@ function renderZoeken(){
   renderChips(); renderCompareChart();
 }
 function addCompare(id){
-  if(compareList.includes(id)) return;
-  if(compareList.length>=6) return alert('Maximaal 6 nummers tegelijk vergelijken.');
+  const s = SONGS.find(x=>x.id===id);
+  if(compareList.includes(id)){
+    showToast(`${s.t} staat al in de 'Zoek & Vergelijk' vergelijking.`);
+    return;
+  }
+  if(compareList.length>=6){
+    showToast(`${s.t} niet toegevoegd. De 'Zoek & Vergelijk' pagina heeft al het maximaal aantal van zes nummers.`);
+    return;
+  }
   compareList.push(id);
   renderChips(); renderCompareChart();
+  showToast(`${s.t} is toegevoegd aan de 'Zoek & Vergelijk' pagina.`);
 }
 function removeCompare(id){
   compareList = compareList.filter(x=>x!==id);
@@ -293,13 +324,13 @@ function renderHallOfFame(){
       <h3>Alle ${YEARS.length} jaar genoteerd <span class="tag">${all14.length} nummers</span></h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#${CUR_YEAR}</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th></tr></thead>
+          <thead><tr><th>#${CUR_YEAR}</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th><th></th></tr></thead>
           <tbody>
           ${all14.map(s=>{
             const cr = currentRank(s);
             const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
-            return `<tr><td class="rank">${cr?cr.pos:'—'}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td></tr>`;
-          }).join('') || '<tr><td colspan="5" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
+            return `<tr><td class="rank">${cr?cr.pos:'—'}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td>${addBtnHtml(s.id)}</tr>`;
+          }).join('') || '<tr><td colspan="6" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -308,12 +339,12 @@ function renderHallOfFame(){
       <h3>Overige lang genoteerde nummers <span class="tag">top 100</span></h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th class="col-jaren">Jaren</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th></tr></thead>
+          <thead><tr><th class="col-jaren">Jaren</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th><th></th></tr></thead>
           <tbody>
           ${others.map(({s,years})=>{
             const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
-            return `<tr><td class="rank col-jaren">${years}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td></tr>`;
-          }).join('') || '<tr><td colspan="5" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
+            return `<tr><td class="rank col-jaren">${years}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td>${addBtnHtml(s.id)}</tr>`;
+          }).join('') || '<tr><td colspan="6" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -357,11 +388,11 @@ function drawStijgers(){
     return list.map(({s,p1,p2,delta})=>{
       const cls = delta>0?'move-up':(delta<0?'move-down':'move-flat');
       const arrow = delta>0? '▲':(delta<0?'▼':'—');
-      return `<tr><td class="rank">${p2}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono" style="color:#a19c8e;">was #${p1}</td><td class="${cls}">${arrow} ${Math.abs(delta)}</td></tr>`;
-    }).join('') || `<tr><td colspan="5" style="color:#a19c8e;">Geen data voor ${prev}→${y}</td></tr>`;
+      return `<tr><td class="rank">${p2}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono" style="color:#a19c8e;">was #${p1}</td><td class="${cls}">${arrow} ${Math.abs(delta)}</td>${addBtnHtml(s.id)}</tr>`;
+    }).join('') || `<tr><td colspan="6" style="color:#a19c8e;">Geen data voor ${prev}→${y}</td></tr>`;
   }
-  document.getElementById('risersWrap').innerHTML = `<table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>${prev}</th><th>Δ</th></tr></thead><tbody>${rows(risers)}</tbody></table>`;
-  document.getElementById('fallersWrap').innerHTML = `<table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>${prev}</th><th>Δ</th></tr></thead><tbody>${rows(fallers)}</tbody></table>`;
+  document.getElementById('risersWrap').innerHTML = `<table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>${prev}</th><th>Δ</th><th></th></tr></thead><tbody>${rows(risers)}</tbody></table>`;
+  document.getElementById('fallersWrap').innerHTML = `<table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>${prev}</th><th>Δ</th><th></th></tr></thead><tbody>${rows(fallers)}</tbody></table>`;
 }
 
 /* ============ 5. NIEUWKOMERS ============ */
@@ -397,8 +428,8 @@ function renderNieuw(){
     <div class="card">
       <h3>Hoogste ooit binnengekomen <span class="tag">top 15, alle jaargangen</span></h3>
       <div class="table-wrap">
-        <table><thead><tr><th>Positie</th><th>Artiest</th><th>Titel</th><th>Jaargang</th></tr></thead>
-          <tbody>${topDebuts.map(d=> `<tr><td class="rank">#${d.pos}</td><td class="artist-name">${esc(d.s.a)}</td><td class="title-name">${esc(d.s.t)}</td><td class="mono">${d.year}</td></tr>`).join('')}</tbody>
+        <table><thead><tr><th>Positie</th><th>Artiest</th><th>Titel</th><th>Jaargang</th><th></th></tr></thead>
+          <tbody>${topDebuts.map(d=> `<tr><td class="rank">#${d.pos}</td><td class="artist-name">${esc(d.s.a)}</td><td class="title-name">${esc(d.s.t)}</td><td class="mono">${d.year}</td>${addBtnHtml(d.s.id)}</tr>`).join('')}</tbody>
         </table>
       </div>
     </div>
@@ -418,8 +449,8 @@ function drawNewcomers(){
   newcomers.sort((a,b)=> a.pos-b.pos);
   document.getElementById('newCount').textContent = newcomers.length + ' nieuw in ' + y;
   document.getElementById('newcomersWrap').innerHTML = `
-    <table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>Jaar</th></tr></thead>
-      <tbody>${newcomers.slice(0,100).map(({s,pos})=> `<tr><td class="rank">${pos}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td></tr>`).join('') || '<tr><td colspan="4" style="color:#a19c8e;">Geen nieuwkomers gevonden</td></tr>'}</tbody>
+    <table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th></th></tr></thead>
+      <tbody>${newcomers.slice(0,100).map(({s,pos})=> `<tr><td class="rank">${pos}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td>${addBtnHtml(s.id)}</tr>`).join('') || '<tr><td colspan="5" style="color:#a19c8e;">Geen nieuwkomers gevonden</td></tr>'}</tbody>
     </table>
     ${newcomers.length>100? `<p style="font-size:12px;color:#a19c8e;padding:8px;">+ ${newcomers.length-100} meer (top 100 getoond)</p>`:''}
   `;
@@ -614,7 +645,7 @@ function drawYearOverview(){
   const hasPrev = YEARS.includes(y-1);
   const ranked = SONGS.filter(s=> isNum(posIn(s,y))).sort((a,b)=> posIn(a,y)-posIn(b,y)).slice(0,n);
   document.getElementById('yearWrap').innerHTML = `
-    <table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>${hasPrev? y-1 : ''}</th></tr></thead>
+    <table><thead><tr><th>#${y}</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>${hasPrev? y-1 : ''}</th><th></th></tr></thead>
       <tbody>${ranked.map(s=>{
         const pos = posIn(s,y);
         let moveHtml = '';
@@ -630,7 +661,7 @@ function drawYearOverview(){
           else if(prevCode==='K'){ moveHtml = `<span class="move-new" title="Stond dat jaar in de Keuzelijst voor de Top 2000">KEUZELIJST</span>`; }
           else { moveHtml = `<span class="move-new">NIEUW</span>`; }
         }
-        return `<tr><td class="rank">${pos}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td>${moveHtml}</td></tr>`;
+        return `<tr><td class="rank">${pos}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td>${moveHtml}</td>${addBtnHtml(s.id)}</tr>`;
       }).join('')}</tbody>
     </table>`;
 }
