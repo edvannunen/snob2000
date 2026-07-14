@@ -274,19 +274,16 @@ function renderHallOfFame(){
   const all14 = SONGS.filter(s=> chartedYearsList(s).length === YEARS.length)
     .sort((a,b)=> (currentRank(a)?.pos ?? 9999) - (currentRank(b)?.pos ?? 9999));
 
-  // longest unbroken streak ending logic
-  function longestStreak(s){
-    let best=0, cur=0;
-    YEARS.forEach(y=>{ if(isNum(posIn(s,y))){ cur++; best=Math.max(best,cur);} else cur=0; });
-    return best;
-  }
-  const streaks = SONGS.map(s=> ({s, streak: longestStreak(s)})).sort((a,b)=> b.streak-a.streak).slice(0,50);
+  const others = SONGS.map(s=> ({s, years: chartedYearsList(s).length}))
+    .filter(o=> o.years>0 && o.years<YEARS.length)
+    .sort((a,b)=> b.years-a.years)
+    .slice(0,100);
 
   panel.innerHTML = `
     <div class="section-head">
       <span class="kicker">De legendes</span>
       <h2>Hall of Fame</h2>
-      <p>Nummers die zich al ${YEARS.length} jaar op rij weten te handhaven, en de langste onafgebroken reeksen ooit.</p>
+      <p>Nummers die zich al ${YEARS.length} jaar op rij weten te handhaven, en de nummers die er net naast zitten.</p>
     </div>
     <div class="card">
       <h3>Alle ${YEARS.length} jaar genoteerd <span class="tag">${all14.length} nummers</span></h3>
@@ -296,7 +293,7 @@ function renderHallOfFame(){
           <tbody>
           ${all14.map(s=>{
             const cr = currentRank(s);
-            const spark = YEARS.map(y=> posIn(s,y)).join(',');
+            const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
             return `<tr><td class="rank">${cr?cr.pos:'—'}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td></tr>`;
           }).join('') || '<tr><td colspan="5" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
@@ -304,15 +301,15 @@ function renderHallOfFame(){
       </div>
     </div>
     <div class="card">
-      <h3>Langste onafgebroken notering <span class="tag">top 50</span></h3>
+      <h3>Overige lang genoteerde nummers <span class="tag">top 100</span></h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th class="col-jaren">Jaren</th><th>Artiest</th><th>Titel</th><th>#${CUR_YEAR}</th></tr></thead>
+          <thead><tr><th class="col-jaren">Jaren</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th></tr></thead>
           <tbody>
-          ${streaks.map(({s,streak})=>{
-            const cr = currentRank(s);
-            return `<tr><td class="rank col-jaren">${streak}${streak===YEARS.length?'<span class="badge-14">MAX</span>':''}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${cr?('#'+cr.pos+' ('+cr.year+')'):'niet actief'}</td></tr>`;
-          }).join('')}
+          ${others.map(({s,years})=>{
+            const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
+            return `<tr><td class="rank col-jaren">${years}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono" style="font-size:11px;color:#a19c8e;">${spark}</td></tr>`;
+          }).join('') || '<tr><td colspan="5" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
         </table>
       </div>
