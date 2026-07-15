@@ -309,20 +309,15 @@ function renderHallOfFame(){
   const all14 = SONGS.filter(s=> chartedYearsList(s).length === YEARS.length)
     .sort((a,b)=> (currentRank(a)?.pos ?? 9999) - (currentRank(b)?.pos ?? 9999));
 
-  const others = SONGS.map(s=> ({s, years: chartedYearsList(s).length}))
-    .filter(o=> o.years>0 && o.years<YEARS.length)
-    .sort((a,b)=> b.years-a.years)
-    .slice(0,100);
-
   panel.innerHTML = `
     <div class="section-head">
       <span class="kicker">De legendes</span>
       <h2>Hall of Fame</h2>
-      <p>Nummers die zich al ${YEARS.length} jaar op rij weten te handhaven, en de nummers die er net naast zitten.</p>
+      <p>Nummers die zich al ${YEARS.length} jaar op rij weten te handhaven.</p>
     </div>
     <div class="card">
       <h3>Alle ${YEARS.length} jaar genoteerd <span class="tag">${all14.length} nummers</span></h3>
-      <div class="table-wrap">
+      <div class="table-wrap hof-wrap">
         <table>
           <thead><tr><th>#${CUR_YEAR}</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th><th></th></tr></thead>
           <tbody>
@@ -330,20 +325,6 @@ function renderHallOfFame(){
             const cr = currentRank(s);
             const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
             return `<tr><td class="rank">${cr?cr.pos:'—'}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name title-narrow">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono verloop-col">${spark}</td>${addBtnHtml(s.id)}</tr>`;
-          }).join('') || '<tr><td colspan="6" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Overige lang genoteerde nummers <span class="tag">top 100</span></h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th class="col-jaren">Jaren</th><th>Artiest</th><th>Titel</th><th>Jaar</th><th>Verloop</th><th></th></tr></thead>
-          <tbody>
-          ${others.map(({s,years})=>{
-            const spark = YEARS.map(y=> posIn(s,y) ?? '--').join(',');
-            return `<tr><td class="rank col-jaren">${years}</td><td class="artist-name">${esc(s.a)}</td><td class="title-name title-narrow">${esc(s.t)}</td><td class="mono">${s.y??'—'}</td><td class="mono verloop-col">${spark}</td>${addBtnHtml(s.id)}</tr>`;
           }).join('') || '<tr><td colspan="6" style="color:#a19c8e;">Geen nummers voldoen (nog) aan dit criterium.</td></tr>'}
           </tbody>
         </table>
