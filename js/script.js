@@ -145,7 +145,7 @@ function renderOverzicht(){
       <div class="kpi"><div class="num">${fmtNum(all14.length)}</div><div class="label">Nummers alle ${YEARS.length} jaar genoteerd</div></div>
       <div class="kpi"><div class="num">${fmtNum(artistCounts.size)}</div><div class="label">Unieke artiesten</div></div>
       <div class="kpi"><div class="num">${fmtNum(oneHitArtists)}</div><div class="label">Artiesten met precies 1 nummer</div></div>
-      <div class="kpi"><div class="num">${recordCount}<small> jr</small></div><div class="label">Record: meeste jaren genoteerd</div><div class="sub">${esc(songLabel(recordHolder))}</div></div>
+      <div class="kpi"><div class="num">${recordCount}<small> jr</small></div><div class="label">Record: meeste jaren genoteerd</div><div class="sub">${esc(songLabel(recordHolder))}${all14.length>1 ? ` + nog ${all14.length-1}` : ''}</div></div>
       <div class="kpi"><div class="num">${fmtNum(newThisYear)}</div><div class="label">Nieuwe binnenkomers in ${CUR_YEAR}</div></div>
       ${topReleaseYear ? `<div class="kpi"><div class="num">${topReleaseYear.year}</div><div class="label">Het jaartal met de meeste nummers over alle jaren</div><div class="sub">${fmtNum(topReleaseYear.count)} nummers</div></div>` : ''}
     </div>
