@@ -25,5 +25,5 @@ GitHub App connection, despite the repo being public) — see the Coolify Hostin
 to re-set it up if it ever stops firing.
 
 Full server/infra details (Coolify IDs, nginx config, webhook setup) live in
-`D:\Dropbox\App\Coolify Hosting Playbook.md` — check that file for anything deploy- or server-related,
+`../Coolify Hosting Playbook.md` — check that file for anything deploy- or server-related,
 not duplicated here.
