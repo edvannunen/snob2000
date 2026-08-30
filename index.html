@@ -42,7 +42,9 @@
 <footer>
   <img src="assets/favicon.jpg" alt="Snob 2000 logo">
   SNOB 2000 dashboard · data 2012–2025
+  <div class="footer-copyright">&copy; <span id="year"></span> Ed van Nunen &middot; <a href="https://bier-en-brood.nl">bier-en-brood.nl</a><br>De getoonde data is afkomstig van derden en blijft eigendom van de oorspronkelijke bronnen. Dit dashboard is een persoonlijk, niet-commercieel project.</div>
 </footer>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 
 <script src="js/data.js"></script>
 <script src="js/script.js"></script>
